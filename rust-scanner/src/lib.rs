@@ -1,5 +1,12 @@
-use std::net::IpAddr;
-use std::net::Ipv4Addr;
+use std::collections::HashSet;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use xenet::util::packet_builder::tcp::TcpPacketBuilder;
+use xenet::util::packet_builder::tcp::DEFAULT_SRC_PORT;
+use xenet::packet::tcp::TcpFlags;
+use xenet::socket::{AsyncSocket, IpVersion, SocketOption, SocketType};
+use crate::pcap::PacketCaptureOptions;
+use default_net;
+use xenet::packet::ip::IpNextLevelProtocol;
 
 const PORT_DELIMITER: char = '-';
 const DEFAULT_PORT_RANGE: PortRange = PortRange::Range(1,1024); // Well-Known Ports
@@ -53,9 +60,75 @@ enum ScanType {
 * Structure Functions
 */
 
-fn syn_scan_on_port(target: &IpAddr, port: u16){
+async fn syn_scan_on_port(target: &IpAddr, port: u16){
     //println!("SYN scan on port {} on {}", port, target);
-    //TODO: Implement SYN scan
+    // Source IP address in SocketAddr
+
+    let interface = default_net::get_default_interface().unwrap();
+    let src_ip = interface.ipv4[0].addr;
+    let src = SocketAddr::new(IpAddr::V4(src_ip),DEFAULT_SRC_PORT);
+
+    let dst = SocketAddr::new(*target,port);
+
+    let packet_bytes = TcpPacketBuilder::new(src,dst).flags(TcpFlags::SYN).build();
+
+    // Preparation du socket
+    let socket_option = SocketOption {
+        ip_version: IpVersion::V4,
+        socket_type: SocketType::Raw,
+        protocol: Some(IpNextLevelProtocol::Tcp),
+        timeout: None,
+        ttl: None,
+        non_blocking: true,
+    };
+    let socket = AsyncSocket::new(socket_option).unwrap();
+
+    // Preparation du listener
+    /*
+    PacketCaptureOptions
+
+    let mut capture_options: PacketCaptureOptions = PacketCaptureOptions {
+        interface_index: scan_setting.if_index,
+        interface_name: scan_setting.if_name.clone(),
+        src_ips: HashSet::new(),
+        dst_ips: HashSet::new(),
+        src_ports: HashSet::new(),
+        dst_ports: HashSet::new(),
+        ether_types: HashSet::new(),
+        ip_protocols: HashSet::new(),
+        duration: scan_setting.timeout,
+        read_timeout: scan_setting.wait_time,
+        promiscuous: false,
+        store: true,
+        store_limit: u32::MAX,
+        receive_undefined: false,
+        tunnel: scan_setting.tunnel,
+        loopback: scan_setting.loopback,
+    };
+    for target in scan_setting.targets.clone() {
+        capture_options.src_ips.insert(target.ip_addr);
+        capture_options.src_ports.extend(target.get_ports());
+    }
+    match scan_setting.scan_type {
+        ScanType::TcpSynScan => {
+            capture_options
+                .ip_protocols
+                .insert(IpNextLevelProtocol::Tcp);
+        }
+        ScanType::TcpConnectScan => {
+            capture_options
+                .ip_protocols
+                .insert(IpNextLevelProtocol::Tcp);
+        }
+        _ => {}
+    }
+    let listener: Listner = Listner::new(capture_options);
+
+    match socket.send_to(&packet_bytes, dst).await {
+        Ok(_) => {}
+        Err(_) => {}
+    }
+    */
 }
 
 fn connect_scan_on_port(target: &IpAddr, port: u16){
