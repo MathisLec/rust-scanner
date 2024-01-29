@@ -18,8 +18,11 @@ fn print_help(){
 fn parse_args(scan: &mut PortScan){
     // Get args
     let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        panic!("No target specified");
+    }
     // Iterate over args
-    for i in 0..args.len(){
+    for i in 1..args.len(){
         let current_arg = args.get(i).unwrap().as_str();
         if current_arg.starts_with("-"){
             match current_arg {

@@ -1,9 +1,10 @@
 use std::net::IpAddr;
-use std::string::ToString;
+use std::net::Ipv4Addr;
 
 const PORT_DELIMITER: char = '-';
 const DEFAULT_PORT_RANGE: PortRange = PortRange::Range(1,1024); // Well-Known Ports
 const DEFAULT_SCAN_TYPE: ScanType= ScanType::Syn;
+const DEFAULT_TARGET: IpAddr = IpAddr::V4(Ipv4Addr::new(0,0,0,0));
 
 /**
 * Port scan structure
@@ -22,13 +23,15 @@ impl PortScan {
     // start scan
 
     pub fn start(&self){
+        println!("Starting {:?} scan on {:?}", self.scan_type, self.target);
         match self.range {
             PortRange::Single(port) => {
+                println!("Scanning port {}", port);
                 launch_scan_on_port(&self.scan_type, &self.target, port);
-
             },
             PortRange::Range(start,end) => {
                 for i in start..=end {
+                    println!("Scanning ports {}-{}", start, end);
                     launch_scan_on_port(&self.scan_type, &self.target, i);
                 }
             }
@@ -40,7 +43,7 @@ enum PortRange {
     Single(u16),
     Range(u16,u16)
 }
-
+#[derive(Debug)]
 enum ScanType {
     Syn,
     Connect
@@ -51,12 +54,12 @@ enum ScanType {
 */
 
 fn syn_scan_on_port(target: &IpAddr, port: u16){
-    println!("SYN scan on port {} on {}", port, target);
+    //println!("SYN scan on port {} on {}", port, target);
     //TODO: Implement SYN scan
 }
 
 fn connect_scan_on_port(target: &IpAddr, port: u16){
-    println!("Connect scan on port {} on {}", port, target);
+    //println!("Connect scan on port {} on {}", port, target);
     // TODO: Implement connect scan
 }
 
@@ -87,10 +90,9 @@ fn str_to_port_range(arg: &str) -> PortRange{
 fn str_to_ip_addr(arg: &str) -> IpAddr{
     let ip_obj = arg.parse::<IpAddr>();
     match ip_obj{
-        Ok(ip) => ip_obj.unwrap(),
+        Ok(ip) => ip,
         Err(_) => panic!("Invalid IP address")
     }
-    arg.parse::<IpAddr>().unwrap()
 }
 
 fn str_to_scan_type(arg: &str) -> ScanType{
@@ -106,7 +108,7 @@ pub fn create_scan() -> PortScan{
     PortScan {
         range: DEFAULT_PORT_RANGE,
         scan_type: DEFAULT_SCAN_TYPE,
-        target: IpAddr::new()
+        target: DEFAULT_TARGET
     }
 }
 
