@@ -1,9 +1,6 @@
 use std::env;
 use std::process::exit;
-
-use libscanner::create_scan;
 use libscanner::PortScan;
-
 
 fn print_help(){
     println!("rust-scanner [OPTIONS] <TARGET>");
@@ -12,6 +9,10 @@ fn print_help(){
     println!("\t\t\t\tValid port ranges:");
     println!("\t\t\t\t\tSingle port: 80");
     println!("\t\t\t\t\tPort range: 1-1024");
+    println!("\t-s, --scan\t\tScan type. Default: connect");
+    println!("\t\t\t\tValid scan types:");
+    println!("\t\t\t\t\tsyn");
+    println!("\t\t\t\t\tconnect");
 }
 
 
@@ -19,7 +20,8 @@ fn parse_args(scan: &mut PortScan){
     // Get args
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        panic!("No target specified");
+        println!("No target specified");
+        exit(1);
     }
     // Iterate over args
     for i in 1..args.len(){
@@ -35,6 +37,24 @@ fn parse_args(scan: &mut PortScan){
                         Some(port) => scan.set_port(port),
                         None => {
                             println!("No port specified");
+                            exit(1);
+                        }
+                    }
+                },
+                "-s" | "--scan" => {
+                    match args.get(i+1){
+                        Some(scan_type) => scan.set_scan_type(scan_type),
+                        None => {
+                            println!("No scan type specified");
+                            exit(1);
+                        }
+                    }
+                },
+                "-o" | "--output" => {
+                    match args.get(i+1){
+                        Some(output) => scan.set_output_path(output),
+                        None => {
+                            println!("No output file specified");
                             exit(1);
                         }
                     }
