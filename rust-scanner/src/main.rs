@@ -1,6 +1,7 @@
 use std::env;
 use std::process::exit;
-use libscanner::PortScan;
+
+use libscanner::PortScan::PortScan;
 
 fn print_help(){
     println!("rust-scanner [OPTIONS] <TARGET>");
@@ -68,7 +69,7 @@ fn parse_args(scan: &mut PortScan){
 }
 
 fn main() {
-    let mut scan = create_scan();
+    let mut scan = PortScan::create_scan();
     parse_args(&mut scan);
     scan.start();
 }

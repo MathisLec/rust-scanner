@@ -1,18 +1,7 @@
 pub mod PortScan;
-pub mod PortRange;
-pub mod ScanType;
-pub mod Utils;
-
-use std::net::{IpAddr, Ipv4Addr};
-use PortScan::PortScan;
-use PortRange::PortRange;
-use ScanType::ScanType;
-
-const PORT_DELIMITER: char = '-';
-const DEFAULT_PORT_RANGE: PortRange = PortRange::Range(1, 1024);
-// Well-Known Ports
-const DEFAULT_SCAN_TYPE: ScanType = ScanType::Connect;
-const DEFAULT_TARGET: IpAddr = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
+mod PortRange;
+mod ScanType;
+mod Utils;
 
 /**
 * Tests Section
@@ -21,10 +10,14 @@ const DEFAULT_TARGET: IpAddr = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
 mod tests {
     use super::*;
 
+    use PortRange::str_to_port_range;
+
+    use PortScan::str_to_ip_addr;
+
     #[test]
     fn test_str_to_port_range(){
-        assert_eq!(str_to_port_range("1"),PortRange::Single(1));
-        assert_eq!(str_to_port_range("1-1024"),PortRange::Range(1,1024));
+        assert_eq!(str_to_port_range("1"),PortRange::PortRange::Single(1));
+        assert_eq!(str_to_port_range("1-1024"),PortRange::PortRange::Range(1,1024));
     }
     #[test]
     #[should_panic]
