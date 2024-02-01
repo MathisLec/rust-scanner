@@ -12,9 +12,11 @@ use crate::ScanType::ScanType;
 use crate::ScanType::str_to_scan_type;
 
 use crate::Utils::{scan_to_json, check_output_path, exit_with_error};
-
-const DEFAULT_PORT_RANGE: PortRange = PortRange::Range(1, 1024);// Well-Known Ports
+/// the default port range when creating the PortScan structure (Well-Known Ports)
+const DEFAULT_PORT_RANGE: PortRange = PortRange::Range(1, 1024);
+/// the default scan type when creating the PortScan structure
 const DEFAULT_SCAN_TYPE: ScanType = ScanType::Connect;
+/// the default ip target when creating the PortScan structure
 const DEFAULT_TARGET: IpAddr = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
 
 
@@ -26,7 +28,7 @@ pub struct PortScan {
     output_path: String,
     result: Vec<u16>
 }
-
+/// Implement the Serialize trait in order to transform the structure into json object
 impl Serialize for PortScan {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -41,7 +43,7 @@ impl Serialize for PortScan {
         state.end()
     }
 }
-
+/// Structure methods
 impl PortScan {
     // Setters
     pub fn set_port(&mut self, port_range_str: &str) { self.range = str_to_port_range(port_range_str); }
@@ -51,7 +53,7 @@ impl PortScan {
     pub fn set_output_path(&mut self, output_path: &str) { self.output_path = check_output_path(output_path); }
     // Field manipulations
     pub fn add_port_to_result(&mut self, port: u16) { self.result.push(port); }
-    // Check if file already exists
+    // Output generation
     fn create_and_write_file(&self) {
         match File::create(&self.output_path) {
             Ok(mut file) => self.write_scan_result_in_file(&mut file),
@@ -85,7 +87,7 @@ impl PortScan {
             self.create_and_write_file();
         }
     }
-
+    // The "default constructor"
     pub fn create_scan() -> PortScan {
         PortScan {
             range: DEFAULT_PORT_RANGE,
@@ -96,7 +98,7 @@ impl PortScan {
         }
     }
 }
-
+/// convert a string slice into IpAddr structure
 pub fn str_to_ip_addr(arg: &str) -> IpAddr {
     let ip_obj = arg.parse::<IpAddr>();
     match ip_obj {
@@ -104,19 +106,19 @@ pub fn str_to_ip_addr(arg: &str) -> IpAddr {
         Err(_) => panic!("Invalid IP address")
     }
 }
-
+/// launch the correct scan function from the ScanType field
 fn launch_scan_on_port(scan: &mut PortScan, port: u16) {
     match scan.scan_type {
         ScanType::Syn => syn_scan_on_port(scan, port),
         ScanType::Connect => connect_scan_on_port(scan, port)
     }
 }
-
+/// the SYN scan function (Not implemented yet)
 fn syn_scan_on_port(_scan: &mut PortScan, _port: u16) {
     println!("SYN scan not implemented yet.");
     exit(0);
 }
-
+/// the Connect scan function
 fn connect_scan_on_port(scan: &mut PortScan, port: u16) {
     //println!("Connect scan on port {} on {}", port, target);
     match TcpStream::connect(scan.target.to_string() + ":" + port.to_string().as_str()) {
