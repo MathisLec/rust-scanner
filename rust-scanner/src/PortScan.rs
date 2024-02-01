@@ -99,11 +99,11 @@ impl PortScan {
     }
 }
 /// convert a string slice into IpAddr structure
-pub fn str_to_ip_addr(arg: &str) -> IpAddr {
+pub fn str_to_ip_addr(arg: &str) -> Result<IpAddr, &'static str> {
     let ip_obj = arg.parse::<IpAddr>();
     match ip_obj {
-        Ok(ip) => ip,
-        Err(_) => panic!("Invalid IP address")
+        Ok(ip) => Ok(ip),
+        Err(_) => Err("Invalid IP address");
     }
 }
 /// launch the correct scan function from the ScanType field

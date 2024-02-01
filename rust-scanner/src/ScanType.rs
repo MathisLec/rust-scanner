@@ -6,12 +6,12 @@ pub enum ScanType {
     Connect
 }
 /// convert a string slice into a scan type
-pub fn str_to_scan_type(arg: &str) -> ScanType {
+pub fn str_to_scan_type(arg: &str) -> Result<ScanType, &'static str> {
     let bind = arg.to_lowercase();
     let arg= bind.as_str();
     match arg {
-        "syn" => ScanType::Syn,
-        "connect" => ScanType::Connect,
-        _ => panic!("Invalid scan type")
+        "syn" => Ok(ScanType::Syn),
+        "connect" => Ok(ScanType::Connect),
+        _ => Err("Wrong scan type specified")
     }
 }

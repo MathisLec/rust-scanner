@@ -27,7 +27,14 @@ fn parse_args(scan: &mut PortScan){
     }
     // Iterate over args
     for i in 1..args.len(){
-        let current_arg = args.get(i).unwrap().as_str();
+        let current_arg = match args.get(i){
+            Some(arg) => arg.as_str(),
+            None => {
+                println!("No argument specified");
+                exit(1);
+            }
+        };
+
         if current_arg.starts_with("-"){
             match current_arg {
                 "-h" | "--help" => {
@@ -66,7 +73,16 @@ fn parse_args(scan: &mut PortScan){
         }
     }
     // The last argument should be the target
-    scan.set_target(args.get(args.len()-1).unwrap().as_str());
+    let last_arg = args.get(args.len()-1);
+    match last_arg {
+        Some(arg) => {
+            scan.set_target(arg.as_str());
+        },
+        None => {
+            println!("No target specified");
+            exit(1);
+        }
+    }
 }
 
 fn main() {

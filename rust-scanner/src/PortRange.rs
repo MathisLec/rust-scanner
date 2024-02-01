@@ -8,20 +8,29 @@ pub enum PortRange {
     Range(u16, u16)
 }
 /// convert a string slice into a PortRange structure
-pub fn str_to_port_range(arg: &str) -> PortRange {
+pub fn str_to_port_range(arg: &str) -> Result<PortRange, &'static str> {
     let parts: Vec<&str> = arg.split(PORT_DELIMITER).collect();
     match parts[..] {
         [start, end] => check_port_range(start, end),
         [start] => {
-            PortRange::Single(start.parse::<u16>().unwrap())
+            match start.parse::<u16>() {
+                Ok(start) => Ok(PortRange::Single(start)),
+                Err(_) => Err("Invalid port range");
+            }
         },
         _ => panic!("Invalid port range")
     }
 }
 /// make some checks on the specified range before creating an associated object
-pub fn check_port_range(start: &str, end: &str) -> PortRange {
-    let start = start.parse::<u16>().unwrap();
-    let end = end.parse::<u16>().unwrap();
+pub fn check_port_range(start: &str, end: &str) -> Result<PortRange, &'static str> {
+    let start = match start.parse::<u16>() {
+        Ok(start) => start,
+        Err(_) => Err("Invalid port range")
+    };
+    let end = match end.parse::<u16>() {
+        Ok(end) => end,
+        Err(_) => Err("Invalid port range")
+    };
     if start > end {
         panic!("Invalid port range");
     }
