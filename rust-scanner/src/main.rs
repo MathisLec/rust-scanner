@@ -14,6 +14,7 @@ fn print_help(){
     println!("\t\t\t\tValid scan types:");
     println!("\t\t\t\t\tsyn");
     println!("\t\t\t\t\tconnect");
+    println!("\t-o, --output\t\tPath of the output file.");
 }
 
 /// iterate over the arguments and detect if defined parameters are set and change the PortScan field if so

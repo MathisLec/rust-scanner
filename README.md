@@ -27,19 +27,19 @@ If you have any error when executing the CLI, please refer to the help option:
 rust-scanner --help # or -h
 ```
 
-## From Cargo
+#### From Cargo
 You can run the executable without using the executable produced into the build stage by enter the following command:
 ```bash
 cargo run -- <TARGET_IP>
 ```
 
-## From the executable
+#### From the executable
 The simple way to execute the generated executable is the following command:
 ```bash
 rust-scanner <TARGET_IP>
 ```
 
-## Options
+### Options
 ```
 rust-scanner [OPTIONS] <TARGET>
         -h, --help              Prints help information
@@ -51,4 +51,12 @@ rust-scanner [OPTIONS] <TARGET>
                                 Valid scan types:
                                         syn
                                         connect
+        -o, --output            Path of the output file.
 ```
+
+### Doc
+In order to generate the HTML documentation, you can run the command:
+```bash
+cargo doc
+```
+The entrypoint of the documentation could be `target/rust_scanner/index.html`
