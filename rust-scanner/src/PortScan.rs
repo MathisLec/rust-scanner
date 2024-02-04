@@ -46,11 +46,30 @@ impl Serialize for PortScan {
 /// Structure methods
 impl PortScan {
     // Setters
-    pub fn set_port(&mut self, port_range_str: &str) { self.range = str_to_port_range(port_range_str); }
-    pub fn set_protocol(&mut self, scan_type_str: &str) { self.scan_type = str_to_scan_type(scan_type_str); }
-    pub fn set_target(&mut self, target: &str) { self.target = str_to_ip_addr(target); }
-    pub fn set_scan_type(&mut self, scan_type_str: &str) { self.scan_type = str_to_scan_type(scan_type_str); }
-    pub fn set_output_path(&mut self, output_path: &str) { self.output_path = check_output_path(output_path); }
+    pub fn set_port(&mut self, port_range_str: &str) {
+        match str_to_port_range(port_range_str){
+            Ok(port_range) => self.range = port_range,
+            Err(msg) => exit_with_error(msg)
+        }
+    }
+    pub fn set_target(&mut self, target: &str) {
+        match str_to_ip_addr(target){
+            Ok(ip) => self.target = ip,
+            Err(msg) => exit_with_error(msg)
+        }
+    }
+    pub fn set_scan_type(&mut self, scan_type_str: &str) {
+        match str_to_scan_type(scan_type_str){
+            Ok(scan_type) => self.scan_type = scan_type,
+            Err(msg) => exit_with_error(msg)
+        }
+    }
+    pub fn set_output_path(&mut self, output_path: &str) {
+        match check_output_path(output_path) {
+            Ok(output_path) => self.output_path = output_path,
+            Err(msg) => exit_with_error(msg)
+        }
+    }
     // Field manipulations
     pub fn add_port_to_result(&mut self, port: u16) { self.result.push(port); }
     // Output generation
@@ -61,9 +80,14 @@ impl PortScan {
         }
     }
     fn write_scan_result_in_file(&self, file: &mut File) {
-        match file.write_all(scan_to_json(&self).as_bytes()) {
-            Ok(_) => println!("Scan result written in {}", self.output_path),
-            Err(_) => exit_with_error("Error writing scan result in file")
+        match scan_to_json(&self) {
+            Ok(json) => {
+                match file.write_all(json.as_bytes()) {
+                    Ok(_) => println!("Scan result written in {}", self.output_path),
+                    Err(_) => exit_with_error("Error writing scan result in file")
+                }
+            },
+            Err(msg) => exit_with_error(msg)
         }
     }
 
@@ -103,7 +127,7 @@ pub fn str_to_ip_addr(arg: &str) -> Result<IpAddr, &'static str> {
     let ip_obj = arg.parse::<IpAddr>();
     match ip_obj {
         Ok(ip) => Ok(ip),
-        Err(_) => Err("Invalid IP address");
+        Err(_) => Err("Invalid IP address")
     }
 }
 /// launch the correct scan function from the ScanType field

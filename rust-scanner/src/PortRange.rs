@@ -15,7 +15,7 @@ pub fn str_to_port_range(arg: &str) -> Result<PortRange, &'static str> {
         [start] => {
             match start.parse::<u16>() {
                 Ok(start) => Ok(PortRange::Single(start)),
-                Err(_) => Err("Invalid port range");
+                Err(_) => Err("Invalid port range")
             }
         },
         _ => panic!("Invalid port range")
@@ -25,13 +25,14 @@ pub fn str_to_port_range(arg: &str) -> Result<PortRange, &'static str> {
 pub fn check_port_range(start: &str, end: &str) -> Result<PortRange, &'static str> {
     let start = start.parse::<u16>();
     let end = end.parse::<u16>();
-    if let Ok(s) = start && let Ok(e) = end {
-        if s > e && s < 0 && e > 65535 {
-            Err("Invalid port range")
-        } else {
-            Ok(PortRange::Range(s, e))
-        }
-    } else {
-        Err("Invalid port range")
+    match (start, end) {
+        (Ok(s), Ok(e)) => {
+            if s > e || s < 0 || e > 65535 {
+                Err("Invalid port range")
+            } else {
+                Ok(PortRange::Range(s, e))
+            }
+        },
+        _ => Err("Invalid port range")
     }
 }
