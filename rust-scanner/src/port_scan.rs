@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, TcpStream};
-use std::process::exit;
 use serde::ser::{Serializer, SerializeStruct};
 use serde::Serialize;
 
@@ -25,7 +24,7 @@ pub struct PortScan {
     scan_type: ScanType,
     range: PortRange,
     target: IpAddr,
-    output_path: String,
+    output_path: Option<String>,
     result: Vec<u16>
 }
 /// Implement the Serialize trait in order to transform the structure into json object
@@ -45,7 +44,7 @@ impl Serialize for PortScan {
 }
 /// Structure methods
 impl PortScan {
-    // Setters
+    // Setters (will try to parse the string slice and exit the program if it fails)
     pub fn set_port(&mut self, port_range_str: &str) {
         match str_to_port_range(port_range_str){
             Ok(port_range) => self.range = port_range,
@@ -66,7 +65,7 @@ impl PortScan {
     }
     pub fn set_output_path(&mut self, output_path: &str) {
         match check_output_path(output_path) {
-            Ok(output_path) => self.output_path = output_path,
+            Ok(output_path) => self.output_path = Some(output_path),
             Err(msg) => exit_with_error(msg)
         }
     }
@@ -74,16 +73,26 @@ impl PortScan {
     pub fn add_port_to_result(&mut self, port: u16) { self.result.push(port); }
     // Output generation
     fn create_and_write_file(&self) {
-        match File::create(&self.output_path) {
-            Ok(mut file) => self.write_scan_result_in_file(&mut file),
-            Err(_) => exit_with_error("Error creating output file")
+        match &self.output_path {
+            Some(output_path) => {
+                match File::create(output_path) {
+                    Ok(mut file) => self.write_scan_result_in_file(&mut file),
+                    Err(_) => exit_with_error("Error creating output file")
+                }
+            },
+            None => exit_with_error("Error creating output file :: output_path field is None")
         }
     }
     fn write_scan_result_in_file(&self, file: &mut File) {
         match scan_to_json(&self) {
             Ok(json) => {
                 match file.write_all(json.as_bytes()) {
-                    Ok(_) => println!("Scan result written in {}", self.output_path),
+                    Ok(_) => {
+                        match &self.output_path {
+                            Some(path) => println!("Scan result written in {}", path),
+                            None => exit_with_error("Error writing scan result in file :: output_path field is None")
+                        }
+                    },
                     Err(_) => exit_with_error("Error writing scan result in file")
                 }
             },
@@ -107,8 +116,9 @@ impl PortScan {
                 }
             }
         }
-        if self.output_path.len() > 0 {
-            self.create_and_write_file();
+        match self.output_path{
+            Some(_) => self.create_and_write_file(),
+            None => ()
         }
     }
     // The "default constructor"
@@ -117,7 +127,7 @@ impl PortScan {
             range: DEFAULT_PORT_RANGE,
             scan_type: DEFAULT_SCAN_TYPE,
             target: DEFAULT_TARGET,
-            output_path: String::new(),
+            output_path: None,
             result: Vec::new()
         }
     }
@@ -139,8 +149,7 @@ fn launch_scan_on_port(scan: &mut PortScan, port: u16) {
 }
 /// Perform SYN scan on the specified port (Not implemented yet)
 fn syn_scan_on_port(_scan: &mut PortScan, _port: u16) {
-    println!("SYN scan not implemented yet.");
-    exit(0);
+    todo!("SYN scan not implemented yet.");
 }
 /// Perform Connect scan on the specified port. If the connection is successful, add the port to the result field.
 fn connect_scan_on_port(scan: &mut PortScan, port: u16) {
@@ -183,7 +192,10 @@ mod tests {
     fn test_set_output_path() {
         let mut scan = PortScan::create_scan();
         scan.set_output_path("output.json");
-        assert_eq!(scan.output_path, "output.json");
+        match scan.output_path {
+            Some(path) => assert_eq!(path, "output.json"),
+            None => assert!(false)
+        }
     }
     #[test]
     fn test_add_port_to_result() {

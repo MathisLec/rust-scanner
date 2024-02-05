@@ -42,14 +42,14 @@ mod tests {
             Ok(port_range::PortRange::Single(port)) => {
                 assert_eq!(port, 1024);
             },
-            _ => panic!("str_to_port_range failed :: Wrong conversion")
+            _ => assert!(false)
         }
         match str_to_port_range("1024-2048") {
             Ok(port_range::PortRange::Range(start, end)) => {
                 assert_eq!(start, 1024);
                 assert_eq!(end, 2048);
             },
-            _ => panic!("str_to_port_range failed :: Wrong conversion")
+            _ => assert!(false)
         }
     }
     // ScanType tests
@@ -81,11 +81,11 @@ mod tests {
     fn test_str_to_scan_type_struct(){
         match str_to_scan_type("syn"){
             Ok(scan_type::ScanType::Syn) => {},
-            _ => panic!("str_to_scan_type failed :: Wrong conversion")
+            _ => assert!(false)
         }
         match str_to_scan_type("connect"){
             Ok(scan_type::ScanType::Connect) => {},
-            _ => panic!("str_to_scan_type failed :: Wrong conversion")
+            _ => assert!(false)
         }
     }
     // Utils tests
@@ -109,7 +109,7 @@ mod tests {
             Ok(path) => {
                 assert_eq!(path, str_path);
             },
-            _ => panic!("check_output_path failed :: Function don't return the right value")
+            _ => assert!(false)
         }
     }
 
