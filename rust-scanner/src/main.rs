@@ -1,8 +1,8 @@
 use std::env;
 use std::process::exit;
 
-use libscanner::PortScan::PortScan;
-/// print the help
+use libscanner::port_scan::PortScan;
+
 fn print_help(){
     println!("rust-scanner [OPTIONS] <TARGET>");
     println!("\t-h, --help\t\tPrints help information");
@@ -17,7 +17,6 @@ fn print_help(){
     println!("\t-o, --output\t\tPath of the output file.");
 }
 
-/// iterate over the arguments and detect if defined parameters are set and change the PortScan field if so
 fn parse_args(scan: &mut PortScan){
     // Get args
     let args: Vec<String> = env::args().collect();

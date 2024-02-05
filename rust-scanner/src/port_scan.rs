@@ -5,18 +5,18 @@ use std::process::exit;
 use serde::ser::{Serializer, SerializeStruct};
 use serde::Serialize;
 
-use crate::PortRange::PortRange;
-use crate::PortRange::str_to_port_range;
+use crate::port_range::PortRange;
+use crate::port_range::str_to_port_range;
 
-use crate::ScanType::ScanType;
-use crate::ScanType::str_to_scan_type;
+use crate::scan_type::ScanType;
+use crate::scan_type::str_to_scan_type;
 
-use crate::Utils::{scan_to_json, check_output_path, exit_with_error};
-/// the default port range when creating the PortScan structure (Well-Known Ports)
+use crate::utils::{scan_to_json, check_output_path, exit_with_error};
+/// The default port range when creating the PortScan structure (Well-Known Ports)
 const DEFAULT_PORT_RANGE: PortRange = PortRange::Range(1, 1024);
-/// the default scan type when creating the PortScan structure
+/// The default scan type when creating the PortScan structure
 const DEFAULT_SCAN_TYPE: ScanType = ScanType::Connect;
-/// the default ip target when creating the PortScan structure
+/// The default ip target when creating the PortScan structure
 const DEFAULT_TARGET: IpAddr = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
 
 
@@ -122,7 +122,7 @@ impl PortScan {
         }
     }
 }
-/// convert a string slice into IpAddr structure
+/// Return the associated IpAddr structure from the specified string slice. Return Result::Ok if the IP address is valid or a Result::Err if it's not.
 pub fn str_to_ip_addr(arg: &str) -> Result<IpAddr, &'static str> {
     let ip_obj = arg.parse::<IpAddr>();
     match ip_obj {
@@ -130,19 +130,19 @@ pub fn str_to_ip_addr(arg: &str) -> Result<IpAddr, &'static str> {
         Err(_) => Err("Invalid IP address")
     }
 }
-/// launch the correct scan function from the ScanType field
+/// Launch the correct scan function from the ScanType field
 fn launch_scan_on_port(scan: &mut PortScan, port: u16) {
     match scan.scan_type {
         ScanType::Syn => syn_scan_on_port(scan, port),
         ScanType::Connect => connect_scan_on_port(scan, port)
     }
 }
-/// the SYN scan function (Not implemented yet)
+/// Perform SYN scan on the specified port (Not implemented yet)
 fn syn_scan_on_port(_scan: &mut PortScan, _port: u16) {
     println!("SYN scan not implemented yet.");
     exit(0);
 }
-/// the Connect scan function
+/// Perform Connect scan on the specified port. If the connection is successful, add the port to the result field.
 fn connect_scan_on_port(scan: &mut PortScan, port: u16) {
     //println!("Connect scan on port {} on {}", port, target);
     match TcpStream::connect(scan.target.to_string() + ":" + port.to_string().as_str()) {
@@ -151,5 +151,44 @@ fn connect_scan_on_port(scan: &mut PortScan, port: u16) {
             scan.add_port_to_result(port);
         },
         Err(_) => ()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_set_port() {
+        let mut scan = PortScan::create_scan();
+        scan.set_port("1-1024");
+        assert_eq!(scan.range, PortRange::Range(1, 1024));
+        scan.set_port("1024");
+        assert_eq!(scan.range, PortRange::Single(1024));
+    }
+    #[test]
+    fn test_set_target() {
+        let mut scan = PortScan::create_scan();
+        scan.set_target("127.0.0.1");
+        assert_eq!(scan.target, IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+    }
+    #[test]
+    fn test_set_scan_type() {
+        let mut scan = PortScan::create_scan();
+        scan.set_scan_type("syn");
+        assert_eq!(scan.scan_type, ScanType::Syn);
+        scan.set_scan_type("connect");
+        assert_eq!(scan.scan_type, ScanType::Connect);
+    }
+    #[test]
+    fn test_set_output_path() {
+        let mut scan = PortScan::create_scan();
+        scan.set_output_path("output.json");
+        assert_eq!(scan.output_path, "output.json");
+    }
+    #[test]
+    fn test_add_port_to_result() {
+        let mut scan = PortScan::create_scan();
+        scan.add_port_to_result(80);
+        assert_eq!(scan.result, vec![80]);
     }
 }

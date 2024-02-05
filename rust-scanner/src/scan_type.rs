@@ -5,7 +5,7 @@ pub enum ScanType {
     Syn,
     Connect
 }
-/// convert a string slice into a scan type
+/// Return the associated ScanType structure from the specified string slice. ScanType could be Syn or Connect. Return Result::Err if the scan type is not recognized.
 pub fn str_to_scan_type(arg: &str) -> Result<ScanType, &'static str> {
     let bind = arg.to_lowercase();
     let arg= bind.as_str();
